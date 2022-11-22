@@ -13,7 +13,6 @@ var invoice = {
     button_text: "Поддержать" //Текст кнопки оплаты
 }
 
-const successful_payment = "Спасибо за поддержку" //Сообщение пользователю за донат
 
 
 
@@ -39,8 +38,8 @@ bot.help(async ctx => {
     }
 })
 
-bot.on("message", async (ctx) => {
-    var text = ctx.message.text
+bot.on("message" , async (ctx) => {
+    var text = ctx?.message?.text
     if(text) {
         var world =  text.split(' ')
         if(auth(ctx.from.id)) {
@@ -69,15 +68,7 @@ bot.on("message", async (ctx) => {
     }
 })
 
-
-
-bot.on('pre_checkout_query', async (ctx) => await ctx.answerPreCheckoutQuery(true)) // ответ на предварительный запрос по оплате
-
-bot.on('successful_payment', async (ctx, next) => { // ответ в случае положительной оплаты
-    await ctx.reply("dddddd")
-})
-
-
+bot.on('pre_checkout_query', (ctx) => ctx.answerPreCheckoutQuery(true)) // ответ на предварительный запрос по оплате
 
 const auth = (id) => {
     for(i = 0; i < admins_id.length; i++) {
@@ -109,7 +100,10 @@ const getInvoice = (chat_id, title, description, prices, max_tip_amount, suggest
         description: description,
         currency: 'RUB',
         prices: prices,
-        payload: {},
+        payload: {
+            unique_id: `${chat_id}_${Number(new Date())}`,
+            provider_token: process.env.PROVIDER_TOKEN 
+        },
         max_tip_amount: max_tip_amount*100,
         suggested_tip_amounts: amounts,
         reply_markup: _markup.reply_markup
