@@ -72,7 +72,7 @@ bot.on("message", async (ctx) => {
 bot.on('pre_checkout_query', async (ctx) => await ctx.answerPreCheckoutQuery(true)) // ответ на предварительный запрос по оплате
 
 bot.on('successful_payment', async (ctx, next) => { // ответ в случае положительной оплаты
-  await ctx.reply()
+  await ctx.reply(successful_payment)
 })
 
 
