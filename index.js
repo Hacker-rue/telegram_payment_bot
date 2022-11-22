@@ -41,29 +41,31 @@ bot.help(async ctx => {
 
 bot.on("message", async (ctx) => {
     var text = ctx.message.text
-    var world =  text.split(' ')
-    if(auth(ctx.from.id)) {
-        if(world[0] == "/addDonation") {
-            if(world.length == 2) {
-                try {
-                    await ctx.replyWithInvoice(getInvoice(world[1], invoice.title, invoice.description, 
-                        prices(invoice.prices), invoice.max_tip_amount, invoice.suggested_tip_amounts, invoice.button_text))
-                } catch(er) {
-                    await ctx.reply("Не правильный ID канала, у бота нету доступа или вы ввели некорректный ID.")
+    if(text) {
+        var world =  text.split(' ')
+        if(auth(ctx.from.id)) {
+            if(world[0] == "/addDonation") {
+                if(world.length == 2) {
+                    try {
+                        await ctx.replyWithInvoice(getInvoice(world[1], invoice.title, invoice.description, 
+                            prices(invoice.prices), invoice.max_tip_amount, invoice.suggested_tip_amounts, invoice.button_text))
+                    } catch(er) {
+                        await ctx.reply("Не правильный ID канала, у бота нету доступа или вы ввели некорректный ID.")
+                    }
+                } else {
+                    try {
+                        await ctx.replyWithInvoice(getInvoice(ctx.chat.id, invoice.title, invoice.description, 
+                            prices(invoice.prices), invoice.max_tip_amount, invoice.suggested_tip_amounts, invoice.button_text))
+                    } catch(er) {
+                        console.log(er)
+                    } 
                 }
             } else {
-                try {
-                    await ctx.replyWithInvoice(getInvoice(ctx.chat.id, invoice.title, invoice.description, 
-                        prices(invoice.prices), invoice.max_tip_amount, invoice.suggested_tip_amounts, invoice.button_text))
-                } catch(er) {
-                    console.log(er)
-                } 
+                await ctx.reply("Такой команды нет.")
             }
         } else {
-            await ctx.reply("Такой команды нет.")
+            await ctx.reply("У вас нет доступа к управлению ботом.")
         }
-    } else {
-        await ctx.reply("У вас нет доступа к управлению ботом.")
     }
 })
 
@@ -72,7 +74,7 @@ bot.on("message", async (ctx) => {
 bot.on('pre_checkout_query', async (ctx) => await ctx.answerPreCheckoutQuery(true)) // ответ на предварительный запрос по оплате
 
 bot.on('successful_payment', async (ctx, next) => { // ответ в случае положительной оплаты
-  await ctx.reply(successful_payment)
+    await ctx.reply("dddddd")
 })
 
 
