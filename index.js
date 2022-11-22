@@ -21,7 +21,7 @@ bot.start(async ctx => {
     if(auth(ctx.from.id)) {
         await ctx.reply("Добро пожаловать!\n" + 
             "Бот поможет вам добавить кнопку доната в ваш канал или группу!\n" +
-            "Для получения списка команд введите /help" +
+            "Для получения списка команд введите /help " +
             "Инструкция по настройке бота: https://github.com/Hacker-rue/telegram_payment_bot")
     } else {
         await ctx.reply("У вас нет доступа к управлению ботом")
