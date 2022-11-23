@@ -1,6 +1,6 @@
 const { Telegraf, Markup } = require('telegraf')
 require('dotenv').config()
-const admins_id = [1029277564, 1212121212]
+const admins_id = [1029277564, 394138820]
 
 const bot = new Telegraf(process.env.TELEGRAM_API_TOKEN)
 
