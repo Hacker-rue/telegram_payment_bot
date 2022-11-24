@@ -22,7 +22,7 @@
 
 Для получения токена провайдера платежей необходимо использовать бота BotFather.
 Выполняем команду /mybots для получения списка наших ботов, выбираем только что созданного бота и нажимаем Payments:
-![Payments](https://drive.google.com/file/d/1DmosNPt6tOk4Db9ZHPv9blIxo42EHIN4/view?usp=sharing)
+![Payments](https://ibb.co/5YFW80h)
 ## Создание бота
 
 Вы можете использовать наш код
