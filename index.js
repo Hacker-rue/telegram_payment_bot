@@ -13,11 +13,13 @@ var invoice = {
     button_text: "Поддержать" //Текст кнопки оплаты
 }
 
-
-
+var config = {
+    mainChannel: -1001790175470,
+    spamChannels: [{id: -1001893986335, chat_group_id: -1001510338058}]
+}
 
 bot.start(async ctx => {
-    if(auth(ctx.from.id)) {
+    if(admin(ctx.from.id)) {
         await ctx.reply("Добро пожаловать!\n" + 
             "Бот поможет вам добавить кнопку доната в ваш канал или группу!\n" +
             "Для получения списка команд введите /help " +
@@ -28,7 +30,7 @@ bot.start(async ctx => {
 })
 
 bot.help(async ctx => {
-    if(auth(ctx.from.id)) {
+    if(admin(ctx.from.id)) {
         await ctx.reply("Доступные команды:\n" + 
         "/addDonation - добовляет кнопку оплаты в канал или группу имеет 2 способа ввода:\n" + 
         "Принимает один аргумент через пробел: ID канала, если не передать то создаст кнопку в чате где была вызванна команда.\n\n" +
@@ -40,9 +42,9 @@ bot.help(async ctx => {
 
 bot.on("message" , async (ctx) => {
     var text = ctx?.message?.text
-    if(text) {
+    if(admin(ctx.from.id)) {
         var world =  text.split(' ')
-        if(auth(ctx.from.id)) {
+        if(text) {
             if(world[0] == "/addDonation") {
                 if(world.length == 2) {
                     try {
@@ -66,15 +68,44 @@ bot.on("message" , async (ctx) => {
             await ctx.reply("У вас нет доступа к управлению ботом.")
         }
     }
+    if(ctx.message?.is_automatic_forward) {
+        if(auth(ctx.message.sender_chat.id)) {
+            addIdLastPublication(ctx.message.sender_chat.id, ctx.message.message_id, ctx.message.chat.id)
+        }
+    }
 })
+
+bot.on("channel_post", async (ctx) => {
+    if(ctx.channelPost.chat.id == config.mainChannel) {
+        console.log(ctx.channelPost)
+        for(i = 0; i < config.spamChannels.length; i++) {
+            ctx.copyMessage(config.spamChannels[i]["chat_group_id"], 
+                {reply_to_message_id: config.spamChannels[i]["idLastPublication"]})
+        }
+    } else if(await auth(ctx.channelPost.chat.id)) {
+        console.log(ctx.channelPost)
+        console.log(ctx.message)
+        addIdLastPublication(ctx.channelPost.chat.id, ctx.channelPost.message_id)
+    }
+})
+
 
 bot.on('pre_checkout_query', (ctx) => ctx.answerPreCheckoutQuery(true)) // ответ на предварительный запрос по оплате
 
-const auth = (id) => {
+const admin = (id) => {
     for(i = 0; i < admins_id.length; i++) {
         if(admins_id[i] == id) return true
     }
     return false
+}
+
+async function auth(chat_id) {
+    for(i = 0; i < config.spamChannels.length; i++) {
+        if(chat_id == config.spamChannels[i].id) {
+            return true;
+        }
+    }
+    return false;
 }
 
 const prices = (_prices) => {
