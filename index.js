@@ -83,8 +83,6 @@ bot.on("channel_post", async (ctx) => {
                 {reply_to_message_id: config.spamChannels[i]["idLastPublication"]})
         }
     } else if(await auth(ctx.channelPost.chat.id)) {
-        console.log(ctx.channelPost)
-        console.log(ctx.message)
         addIdLastPublication(ctx.channelPost.chat.id, ctx.channelPost.message_id)
     }
 })
@@ -140,6 +138,16 @@ const getInvoice = (chat_id, title, description, prices, max_tip_amount, suggest
         reply_markup: _markup.reply_markup
     }
     return invoice
+}
+
+async function addIdLastPublication(chat_id, idPublication, chat_group_id) {
+    for(i = 0; i < config.spamChannels.length; i++) {
+        if(chat_id == config.spamChannels[i].id) {
+            config.spamChannels[i]["idLastPublication"] = idPublication
+            config.spamChannels[i]["chat_group_id"] = chat_group_id
+            return
+        }
+    }
 }
 
 bot.launch()
