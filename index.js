@@ -83,7 +83,7 @@ bot.on("channel_post", async (ctx) => {
                 {reply_to_message_id: config.spamChannels[i]["idLastPublication"]})
         }
     } else if(await auth(ctx.channelPost.chat.id)) {
-        addIdLastPublication(ctx.channelPost.chat.id, ctx.channelPost.message_id)
+        // addIdLastPublication(ctx.channelPost.chat.id, ctx.channelPost.message_id)
     }
 })
 
