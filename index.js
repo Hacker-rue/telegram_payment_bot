@@ -1,4 +1,5 @@
-const { Telegraf, Markup } = require('telegraf')
+const { Telegraf, Markup, Telegram } = require('telegraf')
+const { addCurrentPost, addIdLastPublication, replyChannelPost} = require('./spamModule')
 require('dotenv').config()
 const admins_id = [1029277564, 394138820]
 
@@ -15,13 +16,22 @@ var invoice = {
 
 var config = {
     mainChannel: -1001790175470,
-    spamChannels: [{id: -1001893986335, chat_group_id: -1001510338058}]
+    spamChannels: [{id: -1001893986335, chat_group_id: -1001510338058, idLastPublication: 115}]
+}
+
+var currentPost = {
+    media_group_id: 0,
+    contentType: "",
+    content: [],
+    caption: "",
+    caption_entities: []
 }
 
 bot.start(async ctx => {
     if(admin(ctx.from.id)) {
         await ctx.reply("Добро пожаловать!\n" + 
             "Бот поможет вам добавить кнопку доната в ваш канал или группу!\n" +
+            "А так же поможет вам сделать авто-спам постов из основного канала в дополнительные" +
             "Для получения списка команд введите /help " +
             "Инструкция по настройке бота: https://github.com/Hacker-rue/telegram_payment_bot")
     } else {
@@ -43,7 +53,7 @@ bot.help(async ctx => {
 bot.on("message" , async (ctx) => {
     var text = ctx?.message?.text
     if(admin(ctx.from.id)) {
-        var world =  text.split(' ')
+        var world = text.split(' ')
         if(text) {
             if(world[0] == "/addDonation") {
                 if(world.length == 2) {
@@ -72,18 +82,41 @@ bot.on("message" , async (ctx) => {
         if(auth(ctx.message.sender_chat.id)) {
             addIdLastPublication(ctx.message.sender_chat.id, ctx.message.message_id, ctx.message.chat.id)
         }
+        if(ctx.message.sender_chat.id == config.mainChannel) {
+            if(currentPost.media_group_id != 0) {
+                await replyChannelPost()
+            }
+        }
     }
 })
 
 bot.on("channel_post", async (ctx) => {
-    if(ctx.channelPost.chat.id == config.mainChannel) {
-        console.log(ctx.channelPost)
-        for(i = 0; i < config.spamChannels.length; i++) {
-            ctx.copyMessage(config.spamChannels[i]["chat_group_id"], 
-                {reply_to_message_id: config.spamChannels[i]["idLastPublication"]})
+    try {
+        if(ctx.channelPost.chat.id == config.mainChannel) {
+            if(ctx.channelPost?.photo) {
+                await addCurrentPost("photo", ctx.channelPost)
+            } else if(ctx.channelPost?.voice) {
+                await addCurrentPost("voice", ctx.channelPost)
+            } else if(ctx.channelPost?.video) {
+                await addCurrentPost("video", ctx.channelPost)
+            } else if(ctx.channelPost?.video_note) {
+                await addCurrentPost("video_note", ctx.channelPost)
+            } else if(ctx.channelPost?.document) {
+                await addCurrentPost("document", ctx.channelPost)
+            } else if(ctx.channelPost?.audio) {
+                await addCurrentPost("audio", ctx.channelPost)
+            } else {
+                for(i = 0; i < config.spamChannels.length; i++) {
+                    ctx.copyMessage(config.spamChannels[i].chat_group_id, {
+                        reply_to_message_id: config.spamChannels[i].idLastPublication
+                    })
+                }
+            }
+        } else if(await auth(ctx.channelPost.chat.id)) {
+            await addIdLastPublication(ctx.channelPost.chat.id, ctx.channelPost.message_id)
         }
-    } else if(await auth(ctx.channelPost.chat.id)) {
-        // addIdLastPublication(ctx.channelPost.chat.id, ctx.channelPost.message_id)
+    } catch(er) {
+        console.log(er)
     }
 })
 
@@ -140,14 +173,6 @@ const getInvoice = (chat_id, title, description, prices, max_tip_amount, suggest
     return invoice
 }
 
-async function addIdLastPublication(chat_id, idPublication, chat_group_id) {
-    for(i = 0; i < config.spamChannels.length; i++) {
-        if(chat_id == config.spamChannels[i].id) {
-            config.spamChannels[i]["idLastPublication"] = idPublication
-            config.spamChannels[i]["chat_group_id"] = chat_group_id
-            return
-        }
-    }
-}
+
 
 bot.launch()
