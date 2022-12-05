@@ -1,9 +1,11 @@
 const { Telegraf, Markup, Telegram } = require('telegraf')
-const { addCurrentPost, addIdLastPublication, replyChannelPost} = require('./spamModule')
+const { addCurrentPost, addIdLastPublication, replyChannelPost, copyMessage, auth} = require('./spamModule')
 require('dotenv').config()
 const admins_id = [1029277564, 394138820]
 
 const bot = new Telegraf(process.env.TELEGRAM_API_TOKEN)
+
+const mainChannel = -1001790175470
 
 var invoice = {
     title: "TEST", //Название продукта, 1-32 символа
@@ -12,19 +14,6 @@ var invoice = {
     max_tip_amount: 5000, //Максимальная сумма чаевых в рублях
     suggested_tip_amounts: [200, 300, 500], //возможные варианты чаевых в рублях
     button_text: "Поддержать" //Текст кнопки оплаты
-}
-
-var config = {
-    mainChannel: -1001790175470,
-    spamChannels: [{id: -1001893986335, chat_group_id: -1001510338058, idLastPublication: 115}]
-}
-
-var currentPost = {
-    media_group_id: 0,
-    contentType: "",
-    content: [],
-    caption: "",
-    caption_entities: []
 }
 
 bot.start(async ctx => {
@@ -82,17 +71,15 @@ bot.on("message" , async (ctx) => {
         if(auth(ctx.message.sender_chat.id)) {
             addIdLastPublication(ctx.message.sender_chat.id, ctx.message.message_id, ctx.message.chat.id)
         }
-        if(ctx.message.sender_chat.id == config.mainChannel) {
-            if(currentPost.media_group_id != 0) {
-                await replyChannelPost()
-            }
+        if(ctx.message.sender_chat.id == mainChannel) {
+            await replyChannelPost()
         }
     }
 })
 
 bot.on("channel_post", async (ctx) => {
     try {
-        if(ctx.channelPost.chat.id == config.mainChannel) {
+        if(ctx.channelPost.chat.id == mainChannel) {
             if(ctx.channelPost?.photo) {
                 await addCurrentPost("photo", ctx.channelPost)
             } else if(ctx.channelPost?.voice) {
@@ -106,14 +93,8 @@ bot.on("channel_post", async (ctx) => {
             } else if(ctx.channelPost?.audio) {
                 await addCurrentPost("audio", ctx.channelPost)
             } else {
-                for(i = 0; i < config.spamChannels.length; i++) {
-                    ctx.copyMessage(config.spamChannels[i].chat_group_id, {
-                        reply_to_message_id: config.spamChannels[i].idLastPublication
-                    })
-                }
+                copyMessage(ctx.channelPost.sender_chat.id, ctx.channelPost.message_id)
             }
-        } else if(await auth(ctx.channelPost.chat.id)) {
-            await addIdLastPublication(ctx.channelPost.chat.id, ctx.channelPost.message_id)
         }
     } catch(er) {
         console.log(er)
@@ -128,15 +109,6 @@ const admin = (id) => {
         if(admins_id[i] == id) return true
     }
     return false
-}
-
-async function auth(chat_id) {
-    for(i = 0; i < config.spamChannels.length; i++) {
-        if(chat_id == config.spamChannels[i].id) {
-            return true;
-        }
-    }
-    return false;
 }
 
 const prices = (_prices) => {
