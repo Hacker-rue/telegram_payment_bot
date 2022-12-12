@@ -1,9 +1,11 @@
-const { Telegraf, Markup, Telegram } = require('telegraf')
-const { addCurrentPost, addIdLastPublication, replyChannelPost, copyMessage, auth} = require('./spamModule')
+const { Telegraf, Context } = require('telegraf')
+const { login, update, replyChannelPost, updateHandler } = require('./modules/spamModule')
+const { prices, getInvoice } = require('./modules/paymentModule')
 require('dotenv').config()
-const admins_id = [1029277564, 394138820]
 
-const bot = new Telegraf(process.env.TELEGRAM_API_TOKEN)
+const bot = new Telegraf(process.env.BOT_TOKEN)
+
+const admins_id = [1029277564, 394138820]
 
 const mainChannel = -1001790175470
 
@@ -40,7 +42,7 @@ bot.help(async ctx => {
 })
 
 bot.on("message" , async (ctx) => {
-    var text = ctx?.message?.text
+    var text = ctx["message"]["text"]
     if(admin(ctx.from.id)) {
         var world = text.split(' ')
         if(text) {
@@ -67,37 +69,10 @@ bot.on("message" , async (ctx) => {
             await ctx.reply("У вас нет доступа к управлению ботом.")
         }
     }
-    if(ctx.message?.is_automatic_forward) {
-        if(auth(ctx.message.sender_chat.id)) {
-            addIdLastPublication(ctx.message.sender_chat.id, ctx.message.message_id, ctx.message.chat.id)
-        }
+    if(ctx.message.is_automatic_forward) {
         if(ctx.message.sender_chat.id == mainChannel) {
             await replyChannelPost()
         }
-    }
-})
-
-bot.on("channel_post", async (ctx) => {
-    try {
-        if(ctx.channelPost.chat.id == mainChannel) {
-            if(ctx.channelPost?.photo) {
-                await addCurrentPost("photo", ctx.channelPost)
-            } else if(ctx.channelPost?.voice) {
-                await addCurrentPost("voice", ctx.channelPost)
-            } else if(ctx.channelPost?.video) {
-                await addCurrentPost("video", ctx.channelPost)
-            } else if(ctx.channelPost?.video_note) {
-                await addCurrentPost("video_note", ctx.channelPost)
-            } else if(ctx.channelPost?.document) {
-                await addCurrentPost("document", ctx.channelPost)
-            } else if(ctx.channelPost?.audio) {
-                await addCurrentPost("audio", ctx.channelPost)
-            } else {
-                copyMessage(ctx.channelPost.sender_chat.id, ctx.channelPost.message_id)
-            }
-        }
-    } catch(er) {
-        console.log(er)
     }
 })
 
@@ -111,40 +86,8 @@ const admin = (id) => {
     return false
 }
 
-const prices = (_prices) => {
-    var result = []
-    _prices.forEach(element => {
-        result.push({label: element.label, amount: element.amount*100})
-    })
-    return result
-}
 
-const getInvoice = (chat_id, title, description, prices, max_tip_amount, suggested_tip_amounts, button_text) => {
-    var amounts = []
-    suggested_tip_amounts.forEach(element => {
-        amounts.push(element*100)
-    });
-
-    const _markup = Markup.inlineKeyboard([[{text: button_text, pay: true}]])
-    const invoice = {
-        chat_id: chat_id,
-        provider_token: process.env.PROVIDER_TOKEN,
-        start_parameter: '',
-        title: title,
-        description: description,
-        currency: 'RUB',
-        prices: prices,
-        payload: {
-            unique_id: `${chat_id}_${Number(new Date())}`,
-            provider_token: process.env.PROVIDER_TOKEN 
-        },
-        max_tip_amount: max_tip_amount*100,
-        suggested_tip_amounts: amounts,
-        reply_markup: _markup.reply_markup
-    }
-    return invoice
-}
-
-
-
+login()
+update("error", console.error)
+update("update", updateHandler)
 bot.launch()

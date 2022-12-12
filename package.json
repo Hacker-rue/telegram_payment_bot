@@ -1,17 +1,19 @@
 {
-  "name": "payment_bot",
+  "name": "tg_api",
   "version": "1.0.0",
-  "description": "telegram bot for creating a payment button",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "start:dev": "nodemon index.js"
   },
-  "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "dotenv": "^16.0.3",
-    "telegraf": "^4.11.2"
+    "fs": "^0.0.1-security",
+    "prebuilt-tdlib": "^0.1008005.0",
+    "tdl": "^7.2.0",
+    "tdl-tdlib-addon": "^1.2.1",
+    "telegraf": "4.11.2"
   },
   "devDependencies": {
     "nodemon": "^2.0.20"

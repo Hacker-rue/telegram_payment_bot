@@ -1,4 +1,6 @@
-node_modules/
-package-lock.json
+/node_modules
+/_td_database
+/_td_files
 
 .env
+yarn-error.log
