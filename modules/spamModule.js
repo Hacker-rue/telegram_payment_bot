@@ -11,8 +11,7 @@ const client = new Client(new TDLib(getTdjson()), {
     apiHash: process.env.API_HASH
 })
 
-const mainChannel = -1001790175470
-
+var mainChannel = -1001790175470
 
 module.exports = {
     addCurrentPost,
@@ -22,7 +21,12 @@ module.exports = {
     update: client.on,
     replyChannelPost,
     copyMassage,
-    updateHandler
+    updateHandler,
+    getMainChannel,
+    getSpamChannels,
+    addSpamChannel,
+    setMainChannel,
+    delSpamChannel
 }
 
 var spamChannels = [{
@@ -32,6 +36,8 @@ var spamChannels = [{
     idChannel: -1001764342819,
     idDiscussionGroup: -1001894936338
 }]
+
+
 
 var currentPost = {
     media_group_id: 0,
@@ -54,6 +60,36 @@ async function updateHandler(update) {
             }
         }
     }
+}
+
+function addSpamChannel(idChannel, idDiscussionGroup) {
+    spamChannels.push({
+        idChannel: idChannel,
+        idDiscussionGroup: idDiscussionGroup
+    })
+}
+
+function delSpamChannel(idChannel) {
+    for(var i = 0; i < spamChannels.length; i++) {
+        if(idChannel == spamChannels[i].idChannel) {
+            spamChannels[i] = spamChannels[spamChannels.length - 1]
+            spamChannels.pop()
+            return true
+        }
+    }
+    return false
+}
+
+function getSpamChannels() {
+    return spamChannels
+}
+
+function getMainChannel() {
+    return mainChannel
+}
+
+function setMainChannel(idMainChannel) {
+    mainChannel = idMainChannel
 }
 
 async function auth(chat_id) {
@@ -157,20 +193,22 @@ var count = 0
 //модуль получения последнего поста, под которым написать коментарий
 async function getLatestPost() {
     var id_chats_message = []
-    console.log(spamChannels)
     try {
         for(var i = 0; i < spamChannels.length; i++) {
-            var True = true
-            var message = await getChatHistory(spamChannels[i]["idChannel"], 0, 0, 1, false)
-            while(True) {
-                if(message["messages"][0]["can_get_message_thread"]) {
-                    True = false
-                } else {
-                    message = await getChatHistory(spamChannels[i]["idChannel"], message["messages"][0]["id"], 0, 1, false)
+            try {
+                var True = true
+                var message = await getChatHistory(spamChannels[i]["idChannel"], 0, 0, 1, false)
+                while(True) {
+                    if(message["messages"][0]["can_get_message_thread"]) {
+                        True = false
+                    } else {
+                        message = await getChatHistory(spamChannels[i]["idChannel"], message["messages"][0]["id"], 0, 1, false)
+                    }
                 }
+                id_chats_message.push(await getLatestMessage(message["messages"][0]["id"], spamChannels[i].idDiscussionGroup))
+            } catch(er) {
+                console.log(er)
             }
-            id_chats_message.push(await getLatestMessage(message["messages"][0]["id"], spamChannels[i].idDiscussionGroup))
-            console.log(i)
         }
     } catch(er) {
         console.log(er)
