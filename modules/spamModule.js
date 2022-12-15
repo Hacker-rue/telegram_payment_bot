@@ -130,7 +130,9 @@ async function copyMassage(from_chat_id, message_id) {
 
 async function replyChannelPost() {
     try {
+        // console.log(currentPost.media_group_id)
         if(currentPost.media_group_id != 0) {
+            currentPost.media_group_id = 0
             await sendChannels(typeHandler.inputMessageContents(currentPost), true)
             deleteCurrentPost()
         }
@@ -142,7 +144,7 @@ async function replyChannelPost() {
 
 async function sendChannels(input_message_content, album = false) {
     var id_chats_message = await getLatestPost()
-    console.log(id_chats_message)
+    // console.log(id_chats_message)
     for(var i = 0; i < id_chats_message.length; i++) {
         if(!album) {
             await sendMessage(id_chats_message[i].id_chat, 0, id_chats_message[i].id, input_message_content)

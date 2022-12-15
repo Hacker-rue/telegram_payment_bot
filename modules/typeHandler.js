@@ -22,7 +22,7 @@ module.exports = {
         for(i = 1; i < currentPost.content.length; i++) {
             contents.push(typesContents[currentPost.contentType](currentPost.content[i]))
         }
-        console.log(contents)
+        // console.log(contents)
         return contents
     },
 
