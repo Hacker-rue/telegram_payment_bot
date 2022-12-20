@@ -2,5 +2,5 @@
 /_td_database
 /_td_files
 
-.env
+# .env
 yarn-error.log
